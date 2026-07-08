@@ -180,8 +180,6 @@ async Task<CompanyResult> ProcessCompanyAsync(Company company)
     }
     logger.LogInformation("All analyzers completed");
     
-    logger.LogInformation("Analysis results - Hiring: {IsHiring}, CareerPage: {CareerPage}", profile.Hiring, profile.CareerPage);
-
     logger.LogInformation("Found {EmailCount} emails", profile.Emails.Count);
     foreach (var email in profile.Emails)
     {
@@ -203,9 +201,6 @@ async Task<CompanyResult> ProcessCompanyAsync(Company company)
     {
         CompanyName = GetCompanyName(company.Website),
         Website = company.Website,
-
-        IsHiring = profile.Hiring,
-        CareerPage = profile.CareerPage ?? "",
 
         BestEmail = profile.Emails
             .OrderByDescending(x => x.Score)

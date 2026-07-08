@@ -1,9 +1,16 @@
+using System.Numerics;
 using CompanyCrawler.Core.Features.Scoring.Models;
 
 namespace CompanyCrawler.Core.Features.Config;
 
 public static class SystemConfig
 {
+    public static int MaxLinksPerPage = 100;
+    public static int MaxPageCrawlingInMinutes = 2;
+    public static Vector2 CrawlDelayMs = new Vector2(300, 800);
+    public static int PlaywrightDownloadAnchor = 150;
+    public static int MaxPageLength = 550_000;
+    
     public static class Browser
     {
         public static bool Headless = true;

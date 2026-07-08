@@ -29,22 +29,16 @@ public class OutputWriter(CrawlPresetConfig preset) : IOutputWriter
         csv.WriteField("Company");
         csv.WriteField("Website");
 
-        csv.WriteField("Hiring");
-        csv.WriteField("Career Page");
-
         csv.WriteField("Best Email");
-        csv.WriteField("All Emails");
 
-        // csv.WriteField("Language");
-
-        // Best
         foreach (var analyzer in preset.KeywordAnalyzersData)
         {
             csv.WriteField($"Best {analyzer.Type} Page");
             csv.WriteField($"Best {analyzer.Type} Keywords");
         }
 
-        // Others
+        csv.WriteField("All Emails");
+        
         foreach (var analyzer in preset.KeywordAnalyzersData)
         {
             csv.WriteField($"Other {analyzer.Type} Pages");
@@ -72,13 +66,7 @@ public class OutputWriter(CrawlPresetConfig preset) : IOutputWriter
             csv.WriteField(company.CompanyName);
             csv.WriteField(company.Website);
 
-            csv.WriteField(company.IsHiring);
-            csv.WriteField(company.CareerPage);
-
             csv.WriteField(company.BestEmail);
-            csv.WriteField(company.AllEmails);
-
-            // csv.WriteField(company.Language);
 
             foreach (var analyzer in preset.KeywordAnalyzersData)
             {
@@ -96,8 +84,9 @@ public class OutputWriter(CrawlPresetConfig preset) : IOutputWriter
                     csv.WriteField("");
                 }
             }
+            
+            csv.WriteField(company.AllEmails);
 
-            // Other results
             foreach (var analyzer in preset.KeywordAnalyzersData)
             {
                 if (company.Results.TryGetValue(analyzer.Type, out var results) &&

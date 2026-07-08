@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CompanyCrawler.Core.Features.Config;
 using CompanyCrawler.Core.Features.LinkClassification.Interfaces;
 using CompanyCrawler.Core.Features.LinkClassification.Models;
@@ -55,10 +56,18 @@ public class PageCrawler(
 
         var processedCount = 0;
 
+        var stopwatch = Stopwatch.StartNew();
+        
         while (queue.Count > 0)
         {
             var (link, depth) = queue.Dequeue();
-            if (pages.Count > _maxPages) break;
+            if (pages.Count >= _maxPages) break;
+            
+            if (stopwatch.Elapsed > TimeSpan.FromMinutes(SystemConfig.MaxPageCrawlingInMinutes))
+            {
+                logger.LogInformation("Reached crawl timeout");
+                break;
+            }
 
             if (depth > _maxDepth)
             {
@@ -83,9 +92,17 @@ public class PageCrawler(
 
             try
             {
+                await Task.Delay(Random.Shared.Next((int)SystemConfig.CrawlDelayMs.X, (int)SystemConfig.CrawlDelayMs.Y));
+                
                 logger.LogDebug("Downloading page {PageNumber}: {Url}", processedCount, link.Url);
                 var page = await downloader.DownloadAsync(link.Url);
-
+                
+                if (page.Html.Length > SystemConfig.MaxPageLength)
+                {
+                    logger.LogDebug("Skipping huge page ({Length} chars): {Url}", page.Html.Length, page.Url); 
+                    continue;
+                }
+                
                 pages.Add(page);
 
                 logger.LogDebug(
@@ -102,6 +119,7 @@ public class PageCrawler(
                 var discoveredLinks = linkNormalizer
                     .Normalize(page.Url, page.Links)
                     .DistinctBy(x => x.Url)
+                    .Take(SystemConfig.MaxLinksPerPage)
                     .ToList();
 
                 discoveredLinks = linkClassifier.ClassifyLinks(homepage.Url, discoveredLinks);

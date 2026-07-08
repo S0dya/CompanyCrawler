@@ -5,24 +5,27 @@ using Microsoft.Playwright;
 
 namespace CompanyCrawler.Core.Features.WebDownload.Services;
 
-public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
+public class PlaywrightDownloader(IPlaywright playwright, 
+    IBrowser browser) 
+    : IWebDownloader, IAsyncDisposable
 {
-    private readonly IPlaywright _playwright;
-
-    private PlaywrightDownloader(IPlaywright playwright)
-    {
-        _playwright = playwright;
-    }
 
     public static async Task<PlaywrightDownloader> CreateAsync()
     {
         var playwright = await Playwright.CreateAsync();
-        return new PlaywrightDownloader(playwright);
+
+        var browser = await playwright.Chromium.LaunchAsync(
+            new BrowserTypeLaunchOptions
+            {
+                Headless = SystemConfig.Browser.Headless,
+                Args = SystemConfig.Browser.Args
+            });
+
+        return new PlaywrightDownloader(playwright, browser);
     }
 
     public async Task<DownloadedPage> DownloadAsync(string url)
     {
-        IBrowser? browser = null;
         IBrowserContext? context = null;
         IPage? page = null;
         string html = string.Empty;
@@ -30,17 +33,12 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
 
         try
         {
-            browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-            {
-                Headless = SystemConfig.Browser.Headless,
-                Args = SystemConfig.Browser.Args
-            });
-
-            context = await browser.NewContextAsync(new BrowserNewContextOptions
-            {
-                UserAgent = SystemConfig.Browser.UserAgent,
-                IgnoreHTTPSErrors = SystemConfig.Browser.IgnoreHTTPSErrors
-            });
+            context = await browser.NewContextAsync(
+                new BrowserNewContextOptions
+                {
+                    UserAgent = SystemConfig.Browser.UserAgent,
+                    IgnoreHTTPSErrors = SystemConfig.Browser.IgnoreHTTPSErrors
+                });
 
             page = await context.NewPageAsync();
 
@@ -78,13 +76,20 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
 
             await Task.Delay(SystemConfig.Browser.PageLoadDelayMs);
 
-            html = await page.ContentAsync();
+            try
+            {
+                html = await page.ContentAsync();
+            }
+            catch
+            {
+                html = "";
+            }
             
             var links = new List<WebsiteLink>();
 
             var anchors = await page.Locator("a").AllAsync();
 
-            foreach (var anchor in anchors)
+            foreach (var anchor in anchors.Take(SystemConfig.PlaywrightDownloadAnchor))
             {
                 var href = await anchor.GetAttributeAsync("href");
 
@@ -93,7 +98,13 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
                     continue;
                 }
 
-                var text = (await anchor.InnerTextAsync()).Trim();
+                var text = "";
+                
+                try
+                {
+                    text = await page.Locator("body").InnerTextAsync();
+                }
+                catch { }
 
                 if (string.IsNullOrWhiteSpace(text))
                 {
@@ -165,23 +176,12 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
                     // Ignore
                 }
             }
-
-            if (browser != null)
-            {
-                try
-                {
-                    await browser.DisposeAsync();
-                }
-                catch
-                {
-                    // Ignore
-                }
-            }
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        _playwright.Dispose();
+        await browser.DisposeAsync();
+        playwright.Dispose();
     }
 }
