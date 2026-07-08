@@ -6,7 +6,5 @@ namespace CompanyCrawler.Core.Features.PageAnalysis.Interfaces;
 
 public interface IPageAnalyzer
 {
-    AnalyzerType Type { get; }
-
     void Analyze(List<ClassifiedPage> pages, CompanyProfile profile);
 }

@@ -1,8 +1,10 @@
-namespace CompanyCrawler.Core.Features.LinkClassification.Models;
+using CompanyCrawler.Core.Features.LinkClassification.Models;
+
+namespace CompanyCrawler.Core.Features.LinkClassification.Config;
 
 public class PageClassificationConfig
 {
-    public List<LinkCategoryRule> Rules { get; } =
+    public List<LinkCategoryRule> Rules { get; set; } =
     [
         new()
         {
@@ -16,10 +18,32 @@ public class PageClassificationConfig
                 "jobs",
                 "vacancy",
                 "vacancies",
+                "opening",
+                "openings",
+                "position",
+                "positions",
+                "role",
+                "roles",
                 "join",
                 "join-us",
+                "join-us-team",
+                "join-our-team",
                 "work",
-                "hiring"
+                "work-with-us",
+                "hire",
+                "hiring",
+                "employment",
+                "opportunity",
+                "opportunities",
+                "recruitment",
+                "recruiting",
+                "talent",
+                "apply",
+                "apply-now",
+                "apply-online",
+                "grow",
+                "our-team",
+                "team"
             }
         },
 
@@ -31,30 +55,46 @@ public class PageClassificationConfig
             {
                 "contact",
                 "contacts",
+                "contact-us",
                 "reach-us",
-                "support"
+                "reach",
+                "support",
+                "help",
+                "office",
+                "offices",
+                "location",
+                "locations",
+                "email",
+                "get-in-touch",
+                "connect",
+                "connect-with-us"
             }
         },
 
         new()
         {
-            Category = LinkCategory.Blog,
+            Category = LinkCategory.Company,
 
             Keywords =
             {
-                "blog",
-                "article",
-                "articles"
-            }
-        },
-
-        new()
-        {
-            Category = LinkCategory.News,
-
-            Keywords =
-            {
-                "news"
+                "about",
+                "about-us",
+                "company",
+                "studio",
+                "our-story",
+                "story",
+                "history",
+                "mission",
+                "vision",
+                "values",
+                "culture",
+                "people",
+                "leadership",
+                "management",
+                "executive",
+                "founder",
+                "founders",
+                "who-we-are"
             }
         },
 
@@ -66,7 +106,17 @@ public class PageClassificationConfig
             {
                 "portfolio",
                 "projects",
-                "case-study"
+                "project",
+                "our-work",
+                "work",
+                "case-study",
+                "case-studies",
+                "cases",
+                "showcase",
+                "products",
+                "product",
+                "games",
+                "game"
             }
         },
 
@@ -77,18 +127,47 @@ public class PageClassificationConfig
             Keywords =
             {
                 "services",
-                "solutions"
+                "service",
+                "solutions",
+                "solution",
+                "expertise",
+                "what-we-do",
+                "development",
+                "outsourcing"
             }
         },
 
         new()
         {
-            Category = LinkCategory.Company,
+            Category = LinkCategory.Blog,
 
             Keywords =
             {
-                "company",
-                "about"
+                "blog",
+                "blogs",
+                "article",
+                "articles",
+                "post",
+                "posts",
+                "insights",
+                "resources"
+            }
+        },
+
+        new()
+        {
+            Category = LinkCategory.News,
+
+            Keywords =
+            {
+                "news",
+                "press",
+                "press-release",
+                "press-releases",
+                "media",
+                "announcement",
+                "announcements",
+                "updates"
             }
         }
     ];

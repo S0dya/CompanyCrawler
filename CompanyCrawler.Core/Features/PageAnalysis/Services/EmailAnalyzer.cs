@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using CompanyCrawler.Core.Features.LinkClassification.Models;
 using CompanyCrawler.Core.Features.PageAnalysis.Interfaces;
 using CompanyCrawler.Core.Features.PageAnalysis.Models;
 using CompanyCrawler.Core.Features.WebDownload.Models;
@@ -11,11 +12,16 @@ public class EmailAnalyzer(AnalyzerData data) : IPageAnalyzer
         @"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
         RegexOptions.Compiled);
 
-    public void Analyze(List<DownloadedPage> pages, CompanyProfile profile)
+    public void Analyze(List<ClassifiedPage> pages, CompanyProfile profile)
     {
-        foreach (var page in pages)
+        foreach (var classifiedPage in pages)
         {
+            var page = classifiedPage.Page;
+            
             var matches = EmailRegex.Matches(page.VisibleText);
+            
+            if ((data.Scope == AnalyzerScope.Internal && classifiedPage.IsExternal) || 
+                (data.Scope == AnalyzerScope.External && !classifiedPage.IsExternal)) continue;
             
             foreach (Match match in matches)
             {
@@ -33,21 +39,25 @@ public class EmailAnalyzer(AnalyzerData data) : IPageAnalyzer
 
                 foreach (var keyword in data.Keywords)
                 {
-                    if (!address.Contains(keyword.Keyword, StringComparison.OrdinalIgnoreCase)) continue;
+                    var local = address.Split('@')[0];
+                    
+                    if (!local.Contains(keyword.Keyword, StringComparison.OrdinalIgnoreCase)) continue;
 
                     email.Score += keyword.Score;
+                    email.Reasons.Add(keyword.Reason);
                     
-                    profile.Reasons.Add(new AnalyzerReason()
+                    profile.Reasons.Add(new AnalyzerReason
                     {
                         Analyzer = data.Type,
-                        Score = keyword.Score
+                        Source = keyword.Keyword,
+                        Reason = keyword.Reason,
+                        Score = keyword.Score,
+                        Page = page.Url
                     });
-                    
-                    
                 }
+                
+                profile.Emails.Add(email);
             }
         }
-
-        profile.Emails.Sort((a, b) => b.Score.CompareTo(a.Score));
     }
 }

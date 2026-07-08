@@ -1,0 +1,414 @@
+{
+  "name": "Job Hunting",
+
+  "linkCategories":
+  [
+    {
+      "category": "Career",
+      "keywords":
+      [
+        "career",
+        "careers",
+        "job",
+        "jobs",
+        "vacancy",
+        "vacancies",
+        "opening",
+        "openings",
+        "position",
+        "positions",
+        "role",
+        "roles",
+        "join",
+        "join-us",
+        "join-us-team",
+        "join-our-team",
+        "team",
+        "work",
+        "work-with-us",
+        "hire",
+        "hiring",
+        "employment",
+        "opportunity",
+        "opportunities",
+        "recruitment",
+        "talent",
+        "apply",
+        "apply-now",
+        "grow",
+        "people",
+        "culture"
+      ]
+    },
+
+    {
+      "category":"Contact",
+      "keywords":
+      [
+        "contact",
+        "contacts",
+        "contact-us",
+        "reach-us",
+        "support",
+        "help",
+        "office",
+        "location",
+        "locations",
+        "email"
+      ]
+    },
+
+    {
+      "category":"Company",
+      "keywords":
+      [
+        "about",
+        "about-us",
+        "company",
+        "studio",
+        "team",
+        "people",
+        "culture",
+        "mission",
+        "vision",
+        "values",
+        "story",
+        "history",
+        "leadership",
+        "management"
+      ]
+    },
+
+    {
+      "category":"WorkType",
+      "keywords":
+      [
+        "career",
+        "careers",
+        "jobs",
+        "vacancy",
+        "join",
+        "team"
+      ]
+    }
+  ],
+
+  "keywordAnalyzersData":
+  [
+    {
+      "type":"Career",
+      "scope":"Internal",
+
+      "threshold":120,
+
+      "linkCategories":
+      [
+        "career",
+        "careers",
+        "job",
+        "jobs",
+        "vacancy",
+        "vacancies",
+        "opening",
+        "openings",
+        "open roles",
+        "role",
+        "roles",
+        "position",
+        "positions",
+        "apply",
+        "join us",
+        "work with us",
+        "remote",
+        "full time",
+        "fulltime",
+        "part time"
+      ],
+
+      "keywords":
+      [
+        {
+          "keyword":"career",
+          "score":100,
+          "reason":"Career page"
+        },
+        {
+          "keyword":"careers",
+          "score":100,
+          "reason":"Career page"
+        },
+        {
+          "keyword":"job",
+          "score":80,
+          "reason":"Job listing"
+        },
+        {
+          "keyword":"jobs",
+          "score":80,
+          "reason":"Job listing"
+        },
+        {
+          "keyword":"vacancy",
+          "score":90,
+          "reason":"Vacancy"
+        },
+        {
+          "keyword":"vacancies",
+          "score":90,
+          "reason":"Vacancies"
+        },
+        {
+          "keyword":"open roles",
+          "score":110,
+          "reason":"Open roles"
+        },
+        {
+          "keyword":"current openings",
+          "score":110,
+          "reason":"Current openings"
+        },
+        {
+          "keyword":"join us",
+          "score":120,
+          "reason":"Join us"
+        },
+        {
+          "keyword":"join our team",
+          "score":120,
+          "reason":"Join our team"
+        },
+        {
+          "keyword":"work with us",
+          "score":120,
+          "reason":"Work with us"
+        },
+        {
+          "keyword":"we are hiring",
+          "score":140,
+          "reason":"Hiring announcement"
+        },
+        {
+          "keyword":"we're hiring",
+          "score":140,
+          "reason":"Hiring announcement"
+        },
+        {
+          "keyword":"hiring",
+          "score":100,
+          "reason":"Hiring"
+        },
+        {
+          "keyword":"apply",
+          "score":70,
+          "reason":"Apply"
+        },
+        {
+          "keyword":"apply now",
+          "score":100,
+          "reason":"Apply now"
+        },
+        {
+          "keyword":"position",
+          "score":60,
+          "reason":"Position"
+        },
+        {
+          "keyword":"positions",
+          "score":60,
+          "reason":"Positions"
+        },
+        {
+          "keyword":"role",
+          "score":60,
+          "reason":"Role"
+        },
+        {
+          "keyword":"roles",
+          "score":60,
+          "reason":"Roles"
+        }
+      ]
+    },
+
+    {
+      "type":"Tags",
+      "scope":"Internal",
+
+      "threshold":100,
+
+      "linkCategories":
+      [
+        "Company",
+        "Portfolio",
+        "Services",
+        "Blog"
+      ]
+    },
+    
+    {
+      "type":"WorkType",
+      "scope":"Internal",
+
+      "threshold":100,
+
+      "linkCategories":
+      [
+        "Company",
+        "Career"
+      ],
+
+      "keywords":
+      [
+        [
+          {
+            "keyword":"remote",
+            "score":80,
+            "reason":"Remote"
+          },
+          {
+            "keyword":"hybrid",
+            "score":70,
+            "reason":"Hybrid"
+          },
+          {
+            "keyword":"onsite",
+            "score":70,
+            "reason":"Onsite"
+          },
+          {
+            "keyword":"full time",
+            "score":80,
+            "reason":"Full Time"
+          },
+          {
+            "keyword":"full-time",
+            "score":80,
+            "reason":"Full Time"
+          },
+          {
+            "keyword":"fulltime",
+            "score":80,
+            "reason":"Full Time"
+          },
+          {
+            "keyword":"part time",
+            "score":60,
+            "reason":"Part Time"
+          },
+          {
+            "keyword":"part-time",
+            "score":60,
+            "reason":"Part Time"
+          },
+          {
+            "keyword":"contract",
+            "score":60,
+            "reason":"Contract"
+          },
+          {
+            "keyword":"freelance",
+            "score":60,
+            "reason":"Freelance"
+          },
+          {
+            "keyword":"internship",
+            "score":70,
+            "reason":"Internship"
+          },
+          {
+            "keyword":"intern",
+            "score":70,
+            "reason":"Internship"
+          },
+          {
+            "keyword":"relocation",
+            "score":80,
+            "reason":"Relocation"
+          }
+        ]
+      ]
+    }
+  ],
+  
+  "emailAnalyzerData":
+  {
+    "type":"Email",
+    "scope":"Internal",
+
+    "keywords":
+    [
+      {
+        "keyword":"hr",
+        "score":150,
+        "reason":"HR mailbox"
+      },
+      {
+        "keyword":"jobs",
+        "score":140,
+        "reason":"Jobs mailbox"
+      },
+      {
+        "keyword":"career",
+        "score":140,
+        "reason":"Career mailbox"
+      },
+      {
+        "keyword":"careers",
+        "score":140,
+        "reason":"Career mailbox"
+      },
+      {
+        "keyword":"recruit",
+        "score":130,
+        "reason":"Recruitment mailbox"
+      },
+      {
+        "keyword":"recruitment",
+        "score":130,
+        "reason":"Recruitment mailbox"
+      },
+      {
+        "keyword":"talent",
+        "score":120,
+        "reason":"Talent mailbox"
+      },
+      {
+        "keyword":"hiring",
+        "score":120,
+        "reason":"Hiring mailbox"
+      },
+      {
+        "keyword":"people",
+        "score":110,
+        "reason":"People mailbox"
+      },
+      {
+        "keyword":"work",
+        "score":90,
+        "reason":"Work mailbox"
+      },
+      {
+        "keyword":"hello",
+        "score":20,
+        "reason":"Generic mailbox"
+      },
+      {
+        "keyword":"contact",
+        "score":15,
+        "reason":"Contact mailbox"
+      },
+      {
+        "keyword":"info",
+        "score":5,
+        "reason":"Generic mailbox"
+      }
+    ]
+  },
+
+  "crawlSettings":
+  {
+    "maxDepth": 2,
+    "maxPages": 100,
+    "sitemapPath": "/sitemap.xml"
+  }
+}

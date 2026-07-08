@@ -1,3 +1,4 @@
+using CompanyCrawler.Core.Features.Config;
 using CompanyCrawler.Core.Features.WebDownload.Interfaces;
 using CompanyCrawler.Core.Features.WebDownload.Models;
 using Microsoft.Playwright;
@@ -31,40 +32,33 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
         {
             browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
-                Headless = true,
-                Args = new[]
-                {
-                    "--no-sandbox",
-                    "--disable-setuid-sandbox",
-                    "--disable-dev-shm-usage"
-                }
+                Headless = SystemConfig.Browser.Headless,
+                Args = SystemConfig.Browser.Args
             });
 
             context = await browser.NewContextAsync(new BrowserNewContextOptions
             {
-                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                IgnoreHTTPSErrors = true
+                UserAgent = SystemConfig.Browser.UserAgent,
+                IgnoreHTTPSErrors = SystemConfig.Browser.IgnoreHTTPSErrors
             });
 
             page = await context.NewPageAsync();
 
-            await page.GotoAsync(url, new PageGotoOptions
+            var waitUntil = SystemConfig.Browser.WaitUntil.ToLower() switch
             {
-                WaitUntil = WaitUntilState.DOMContentLoaded,
-                Timeout = 30000
-            });
-            
-            var menuButtons = new[]
-            {
-                "button[aria-label*=menu i]",
-                "button[class*=menu i]",
-                "button[class*=hamburger i]",
-                ".hamburger",
-                ".menu-toggle",
-                ".navbar-toggler"
+                "load" => WaitUntilState.Load,
+                "domcontentloaded" => WaitUntilState.DOMContentLoaded,
+                "networkidle" => WaitUntilState.NetworkIdle,
+                _ => WaitUntilState.DOMContentLoaded
             };
 
-            foreach (var selector in menuButtons)
+            await page.GotoAsync(url, new PageGotoOptions
+            {
+                WaitUntil = waitUntil,
+                Timeout = SystemConfig.Browser.TimeoutMs
+            });
+
+            foreach (var selector in SystemConfig.Browser.MenuButtonSelectors)
             {
                 var locator = page.Locator(selector);
 
@@ -73,7 +67,7 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
                     try
                     {
                         await locator.First.ClickAsync();
-                        await page.WaitForTimeoutAsync(500);
+                        await page.WaitForTimeoutAsync(SystemConfig.Browser.MenuClickDelayMs);
                         break;
                     }
                     catch
@@ -82,7 +76,7 @@ public class PlaywrightDownloader : IWebDownloader, IAsyncDisposable
                 }
             }
 
-            await Task.Delay(500);
+            await Task.Delay(SystemConfig.Browser.PageLoadDelayMs);
 
             html = await page.ContentAsync();
             

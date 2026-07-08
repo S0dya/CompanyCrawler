@@ -5,5 +5,5 @@ public enum AnalyzerType
     Career,
     Email,
     Tags,
-    WorkFormat,
+    WorkType,
 }

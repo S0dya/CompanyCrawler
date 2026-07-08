@@ -1,3 +1,5 @@
+using CompanyCrawler.Core.Features.Config;
+using CompanyCrawler.Core.Features.LinkClassification.Config;
 using CompanyCrawler.Core.Features.LinkClassification.Interfaces;
 using CompanyCrawler.Core.Features.LinkClassification.Models;
 using CompanyCrawler.Core.Features.WebDownload.Models;
@@ -31,6 +33,25 @@ public class LinkClassifier(PageClassificationConfig config) : ILinkClassifier
             if (classified.Categories.Count == 0)
             {
                 classified.Categories.Add(LinkCategory.Unknown);
+            }
+            
+            var uri = new Uri(page.Url);
+
+            foreach (var rule in ExternalSitesConfig.Rules)
+            {
+                if (rule.Domains.Any(x =>
+                        uri.Host.Equals(x, StringComparison.OrdinalIgnoreCase) ||
+                        uri.Host.EndsWith("." + x, StringComparison.OrdinalIgnoreCase)))
+                {
+                    classified.IsExternal = true;
+                    classified.ExternalType = rule.Type;
+                    break;
+                }
+            }
+
+            if (classified.IsExternal == false)
+            {
+                classified.ExternalType = ExternalSiteType.Unknown;
             }
 
             result.Add(classified);
@@ -70,4 +91,44 @@ public class LinkClassifier(PageClassificationConfig config) : ILinkClassifier
 
         return text.Contains(keyword, StringComparison.OrdinalIgnoreCase);
     }
+    
+    public List<WebsiteLink> ClassifyLinks(
+        string homepageUrl,
+        List<WebsiteLink> links)
+    {
+        var homeHost = new Uri(homepageUrl).Host;
+
+        foreach (var link in links)
+        {
+            if (!Uri.TryCreate(link.Url, UriKind.Absolute, out var uri))
+                continue;
+
+            var sameHost =
+                uri.Host.Equals(homeHost, StringComparison.OrdinalIgnoreCase);
+
+            if (sameHost)
+            {
+                link.IsExternal = false;
+                link.ExternalType = ExternalSiteType.Unknown;
+                continue;
+            }
+
+            link.IsExternal = true;
+            link.ExternalType = ExternalSiteType.Unknown;
+
+            foreach (var rule in ExternalSitesConfig.Rules)
+            {
+                if (!rule.Domains.Any(x =>
+                        uri.Host.Equals(x, StringComparison.OrdinalIgnoreCase) ||
+                        uri.Host.EndsWith("." + x, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                link.ExternalType = rule.Type;
+                break;
+            }
+        }
+
+        return links;
+    }
+    
 }

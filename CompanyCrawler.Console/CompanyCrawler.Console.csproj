@@ -21,4 +21,11 @@
       <ProjectReference Include="..\CompanyCrawler.Core\CompanyCrawler.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update="Data\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
 </Project>
