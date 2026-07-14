@@ -1,17 +1,63 @@
 namespace CompanyCrawler.Core.Features.Shared.Models;
 
-public static class TextSearch
+public class TextSearch : ITextSearch
 {
-    public static bool ContainsAny(string text, params string[] keywords)
+    public bool ContainsKeyword(
+        string[] textTokens,
+        string[] keywordTokens)
     {
-        foreach (var keyword in keywords)
+        if (keywordTokens.Length == 0)
+            return false;
+
+        for (var i = 0; i <= textTokens.Length - keywordTokens.Length; i++)
         {
-            if (text.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            var matched = true;
+
+            for (var j = 0; j < keywordTokens.Length; j++)
             {
-                return true;
+                if (!textTokens[i + j].Equals(keywordTokens[j]))
+                {
+                    matched = false;
+                    break;
+                }
             }
+
+            if (matched)
+                return true;
         }
 
         return false;
+    }
+    
+    public string[] Tokenize(string text)
+    {
+        return text
+            .ToLowerInvariant()
+            .Split(
+                [
+                    ' ',
+                    '\n',
+                    '\r',
+                    '\t',
+                    '.',
+                    ',',
+                    ':',
+                    ';',
+                    '/',
+                    '\\',
+                    '-',
+                    '_',
+                    '(',
+                    ')',
+                    '[',
+                    ']',
+                    '{',
+                    '}',
+                    '"',
+                    '\'',
+                    '!',
+                    '?'
+                ],
+                StringSplitOptions.RemoveEmptyEntries);
     }
 }

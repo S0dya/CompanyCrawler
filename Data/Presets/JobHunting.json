@@ -410,5 +410,26 @@
     "maxDepth": 2,
     "maxPages": 100,
     "sitemapPath": "/sitemap.xml"
+  },
+
+  "output":
+  {
+    "printBestEmail": true,
+    "printAllEmails": true,
+
+    "printLinkedIn": true,
+    "printGithub": false,
+    "printUpwork": false,
+    "printHH": false,
+    "printGlassdoor": false,
+    "printIndeed": false,
+    "printOtherExternalLinks": false,
+
+    "analyzers":
+    {
+      "Career": "BestLink",
+      "Tags": "Keywords",
+      "WorkType": "Keywords"
+    }
   }
 }

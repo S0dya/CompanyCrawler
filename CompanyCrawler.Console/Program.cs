@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CompanyCrawler;
-using CompanyCrawler.Core;
-using CompanyCrawler.Core.Features;
 using CompanyCrawler.Core.Features.CompanyInput.Interfaces;
 using CompanyCrawler.Core.Features.CompanyInput.Models;
 using CompanyCrawler.Core.Features.Config;
@@ -13,13 +11,14 @@ using CompanyCrawler.Core.Features.LinkClassification.Interfaces;
 using CompanyCrawler.Core.Features.LinkClassification.Models;
 using CompanyCrawler.Core.Features.LinkNormalization.Interfaces;
 using CompanyCrawler.Core.Features.Output.Interfaces;
+using CompanyCrawler.Core.Features.PageAnalysis;
 using CompanyCrawler.Core.Features.PageAnalysis.Interfaces;
 using CompanyCrawler.Core.Features.PageAnalysis.Models;
 using CompanyCrawler.Core.Features.Output.Models;
 using CompanyCrawler.Core.Features.PageCrawling.Interfaces;
+using CompanyCrawler.Core.Features.Shared.Interfaces;
 using CompanyCrawler.Core.Features.Sitemap.Interfaces;
 using CompanyCrawler.Core.Features.WebDownload.Interfaces;
-using CompanyCrawler.Core.Features.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -43,12 +42,10 @@ var preset = JsonSerializer.Deserialize<CrawlPresetConfig>(File.ReadAllText(pres
 var tagsFolder = Path.Combine(root, SystemConfig.Paths.TagsFolder);
 var inputFolder = Path.Combine(root, SystemConfig.Paths.InputFolder);
 var outputFolder = Path.Combine(root, SystemConfig.Paths.OutputFolder);
-var logFolder = Path.Combine(root, SystemConfig.Paths.LogFolder);
 
 var tagsPath = Path.Combine(tagsFolder, SystemConfig.Paths.TagsFileName);
 var csvFiles = Directory.GetFiles(inputFolder, "*.csv");
 var outputPath = Path.Combine(outputFolder, SystemConfig.Paths.OutputFileName);
-var logPath = Path.Combine(logFolder, $"Analysis_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
 
 Directory.CreateDirectory(SystemConfig.Paths.DownloadedHtmlFolder);
 
@@ -70,6 +67,7 @@ var sitemapDownloader = serviceProvider.GetRequiredService<ISitemapDownloader>()
 var linkClassifier = serviceProvider.GetRequiredService<ILinkClassifier>();
 var outputWriter = serviceProvider.GetRequiredService<IOutputWriter>();
 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+var urlHelper = serviceProvider.GetRequiredService<IUrlHelper>();
 
 var analyzers = serviceProvider.GetServices<IPageAnalyzer>().ToList();
 
@@ -89,17 +87,31 @@ var parallelOptions = new ParallelOptions{ MaxDegreeOfParallelism = 8 };
 var results = new ConcurrentBag<CompanyResult>();
 await Parallel.ForEachAsync(companies, parallelOptions, async (company, ct) =>
 {
-    var result = await ProcessCompanyAsync(company);
+    try
+    {
+        var result = await ProcessCompanyAsync(company);
 
-    results.Add(result);
+        results.Add(result);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(
+            ex,
+            "Fatal error while processing {Website}",
+            company.Website);
+    }
 });
 
 logger.LogInformation("All companies processed. Writing results to CSV");
-outputWriter.Write(outputPath, results.ToList());
+
+var inputFileName = Path.GetFileNameWithoutExtension(csvFiles[csvIndex - 1]);
+var outputFile = Path.Combine(outputFolder, inputFileName + "_" + SystemConfig.Paths.OutputFileName);
+
+outputWriter.Write(outputFile, results.ToList());
 
 Process.Start(new ProcessStartInfo
 {
-    FileName = outputPath,
+    FileName = outputFile,
     UseShellExecute = true
 });
 
@@ -115,15 +127,22 @@ async Task<CompanyResult> ProcessCompanyAsync(Company company)
     var sitemapLinks = await sitemapDownloader.DownloadSitemapAsync(company.Website);
 
     logger.LogInformation("Found {SitemapCount} sitemap links", sitemapLinks.Count);
-    foreach (var sitemapLink in sitemapLinks)
-    {
-        logger.LogDebug("Sitemap link: {Url}", sitemapLink.Url);
-    }
     
     homepage.Links.AddRange(sitemapLinks);
     logger.LogInformation("Total links after sitemap: {Count}", homepage.Links.Count);
-    
-    var host = new Uri(company.Website).Host.Replace(".", "_");
+
+    if (!urlHelper.TryGetHost(company.Website, out var host))
+    {
+        logger.LogWarning(
+            "Skipping company because URL is invalid: {Website}",
+            company.Website);
+
+        return new CompanyResult
+        {
+            CompanyName = company.Website,
+            Website = company.Website
+        };
+    }
 
     File.WriteAllText($"{SystemConfig.Paths.DownloadedHtmlFolder}/{host}.html", homepage.Html);
 
@@ -181,21 +200,7 @@ async Task<CompanyResult> ProcessCompanyAsync(Company company)
     logger.LogInformation("All analyzers completed");
     
     logger.LogInformation("Found {EmailCount} emails", profile.Emails.Count);
-    foreach (var email in profile.Emails)
-    {
-        logger.LogInformation("Email: {Address}, Score: {Score}", email.Address, email.Score);
-        foreach (var reason in email.Reasons)
-        {
-            logger.LogDebug("  Reason: {Reason}", reason);
-        }
-    }
-    
     logger.LogInformation("Found {ReasonCount} analysis reasons", profile.Reasons.Count);
-    foreach (var reason in profile.Reasons)
-    {
-        logger.LogInformation("[{Analyzer}] +{Score} '{Source}' ({Reason}) on {Page}", 
-            reason.Analyzer, reason.Score, reason.Source, reason.Reason, reason.Page);
-    }
     
     var result = new CompanyResult
     {
@@ -243,7 +248,10 @@ async Task<CompanyResult> ProcessCompanyAsync(Company company)
 
 string GetCompanyName(string website)
 {
-    var host = new Uri(website).Host.Replace("www.", "");
+    var normalizedWebsite = urlHelper.NormalizeWebsite(website);
+    var host = new Uri(normalizedWebsite).Host.Replace("www.", "");
     var name = host.Split('.')[0];
-    return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name);
+
+    return CultureInfo.InvariantCulture.TextInfo
+        .ToTitleCase(name);
 }

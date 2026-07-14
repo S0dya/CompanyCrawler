@@ -1,11 +1,12 @@
 using CompanyCrawler.Core.Features.LinkClassification.Models;
 using CompanyCrawler.Core.Features.PageAnalysis.Interfaces;
 using CompanyCrawler.Core.Features.PageAnalysis.Models;
+using CompanyCrawler.Core.Features.Shared.Models;
 using Microsoft.Extensions.Logging;
 
 namespace CompanyCrawler.Core.Features.PageAnalysis.Services;
 
-public class KeywordAnalyzer(AnalyzerData data, ILogger<KeywordAnalyzer> logger) : IPageAnalyzer
+public class KeywordAnalyzer(AnalyzerData data, ILogger<KeywordAnalyzer> logger, ITextSearch textSearch) : IPageAnalyzer
 {
     public void Analyze(List<ClassifiedPage> pages, CompanyProfile profile)
     {
@@ -30,12 +31,16 @@ public class KeywordAnalyzer(AnalyzerData data, ILogger<KeywordAnalyzer> logger)
                     k.SearchInUrl);
             }
             
+            var textTokens = textSearch.Tokenize(page.VisibleText);
+            var urlTokens = textSearch.Tokenize(page.Url);
+            
             foreach (var keyword in data.Keywords)
             {
-                if ((keyword.SearchInText &&
-                    page.VisibleText.Contains(keyword.Keyword, StringComparison.OrdinalIgnoreCase)) || 
-                    (keyword.SearchInUrl &&
-                    page.Url.Contains(keyword.Keyword, StringComparison.OrdinalIgnoreCase)))
+                var keywordTokens = textSearch.Tokenize(keyword.Keyword);
+
+                if ((keyword.SearchInText && textSearch.ContainsKeyword(textTokens, keywordTokens))
+                    ||
+                    (keyword.SearchInUrl && textSearch.ContainsKeyword(urlTokens, keywordTokens)))
                 {
                     score += keyword.Score;
                     
@@ -65,7 +70,7 @@ public class KeywordAnalyzer(AnalyzerData data, ILogger<KeywordAnalyzer> logger)
                 Page = page.Url,
                 Keywords = keywords.ToArray(),
             };
-
+            
             profile.Results[data.Type].Add(result);
         }
     }

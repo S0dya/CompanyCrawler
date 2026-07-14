@@ -69,15 +69,8 @@ public class PageCrawler(
                 break;
             }
 
-            if (depth > _maxDepth)
-            {
-                continue;
-            }
-
-            if (!visited.Add(link.Url))
-            {
-                continue;
-            }
+            if (depth > _maxDepth) continue;
+            if (!visited.Add(link.Url)) continue;
 
             processedCount++;
             
@@ -168,12 +161,6 @@ public class PageCrawler(
                     ex,
                     "Couldn't crawl {Url}",
                     link.Url);
-            }
-
-            if (pages.Count >= _maxPages)
-            {
-                logger.LogInformation("Reached max pages limit: {MaxPages}", _maxPages);
-                break;
             }
         }
 

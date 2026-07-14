@@ -14,6 +14,9 @@ using CompanyCrawler.Core.Features.PageCrawling.Interfaces;
 using CompanyCrawler.Core.Features.PageCrawling.Services;
 using CompanyCrawler.Core.Features.Scoring.Interfaces;
 using CompanyCrawler.Core.Features.Scoring.Services;
+using CompanyCrawler.Core.Features.Shared.Interfaces;
+using CompanyCrawler.Core.Features.Shared.Models;
+using CompanyCrawler.Core.Features.Shared.Services;
 using CompanyCrawler.Core.Features.Sitemap.Interfaces;
 using CompanyCrawler.Core.Features.Sitemap.Services;
 using CompanyCrawler.Core.Features.WebDownload.Interfaces;
@@ -34,7 +37,7 @@ public static class DependencyInjection
         services.AddLogging(configure => 
         {
             configure.AddConsole();
-            configure.SetMinimumLevel(LogLevel.Debug);
+            // configure.SetMinimumLevel(LogLevel.Debug);
         });
 
         services.AddSingleton<ICompanyCsvReader, CompanyCsvReader>();
@@ -42,7 +45,9 @@ public static class DependencyInjection
         services.AddSingleton<ISitemapDownloader, SitemapDownloader>();
         services.AddSingleton<ILinkClassifier, LinkClassifier>();
         services.AddSingleton<IOutputWriter, OutputWriter>();
-        services.AddSingleton<ILinkScorer, LinkScorer>();
+        services.AddSingleton<ILinkScorer, LinkScorer>();   
+        services.AddSingleton<ITextSearch, TextSearch>();
+        services.AddSingleton<IUrlHelper, UrlHelper>();
 
         var playwrightDownloader = await PlaywrightDownloader.CreateAsync();
         services.AddSingleton<IWebDownloader>(playwrightDownloader);
@@ -57,7 +62,7 @@ public static class DependencyInjection
         foreach (var analyzer in preset.KeywordAnalyzersData)
         {
             services.AddSingleton<IPageAnalyzer>(sp => 
-                new KeywordAnalyzer(analyzer, sp.GetRequiredService<ILogger<KeywordAnalyzer>>()));
+                new KeywordAnalyzer(analyzer, sp.GetRequiredService<ILogger<KeywordAnalyzer>>(), sp.GetRequiredService<ITextSearch>()));
         }
 
         services.AddSingleton<IPageAnalyzer>(new EmailAnalyzer(preset.EmailAnalyzerData));

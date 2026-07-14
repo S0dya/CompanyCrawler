@@ -1,6 +1,6 @@
 using CompanyCrawler.Core.Features.PageAnalysis.Models;
 
-namespace CompanyCrawler.Core.Features;
+namespace CompanyCrawler.Core.Features.PageAnalysis;
 
 public static class TagsLoader
 {

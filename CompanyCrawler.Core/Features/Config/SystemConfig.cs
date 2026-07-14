@@ -44,7 +44,6 @@ public static class SystemConfig
         public static string TagsFolder = "Tags";
         public static string InputFolder = "Input";
         public static string OutputFolder = "Output";
-        public static string LogFolder = "Logs";
         public static string DownloadedHtmlFolder = "DownloadedHtml";
         public static string TagsFileName = "Tags.txt";
         public static string OutputFileName = "Output.csv";

@@ -16,12 +16,12 @@ public class OutputWriter(CrawlPresetConfig preset) : IOutputWriter
         {
             Delimiter = ";"
         };
-        
+
         using var writer = new StreamWriter(path);
         using var csv = new CsvWriter(writer, config);
 
         WriteHeader(csv);
-        WriteRows(csv, companies, preset);
+        WriteRows(csv, companies);
     }
 
     private void WriteHeader(CsvWriter csv)
@@ -29,90 +29,206 @@ public class OutputWriter(CrawlPresetConfig preset) : IOutputWriter
         csv.WriteField("Company");
         csv.WriteField("Website");
 
-        csv.WriteField("Best Email");
+        if (preset.Output.PrintBestEmail)
+            csv.WriteField("Best Email");
 
         foreach (var analyzer in preset.KeywordAnalyzersData)
         {
-            csv.WriteField($"Best {analyzer.Type} Page");
-            csv.WriteField($"Best {analyzer.Type} Keywords");
+            var printType = preset.Output.Analyzers[analyzer.Type];
+
+            switch (printType)
+            {
+                case PrintType.None:
+                    break;
+
+                case PrintType.Keywords:
+                    csv.WriteField(analyzer.Type);
+                    break;
+
+                case PrintType.Links:
+                    csv.WriteField(analyzer.Type);
+                    break;
+
+                case PrintType.BestLink:
+                    csv.WriteField(analyzer.Type);
+                    break;
+
+                case PrintType.KeywordsAndLinks:
+                    csv.WriteField($"{analyzer.Type} Page");
+                    csv.WriteField($"{analyzer.Type} Keywords");
+                    break;
+
+                case PrintType.KeywordsAndLinksAndOther:
+                    csv.WriteField($"{analyzer.Type} Page");
+                    csv.WriteField($"{analyzer.Type} Keywords");
+
+                    csv.WriteField($"Other {analyzer.Type} Pages");
+                    csv.WriteField($"Other {analyzer.Type} Keywords");
+                    break;
+            }
         }
 
-        csv.WriteField("All Emails");
+        if (preset.Output.PrintAllEmails)
+            csv.WriteField("All Emails");
         
-        foreach (var analyzer in preset.KeywordAnalyzersData)
-        {
-            csv.WriteField($"Other {analyzer.Type} Pages");
-            csv.WriteField($"Other {analyzer.Type} Keywords");
-        }
+        if (preset.Output.PrintLinkedIn)
+            csv.WriteField("LinkedIn");
 
-        csv.WriteField("LinkedIn");
-        csv.WriteField("Github");
-        csv.WriteField("Upwork");
-        csv.WriteField("HH");
-        csv.WriteField("Glassdoor");
-        csv.WriteField("Indeed");
-        csv.WriteField("Other External Links");
-        
+        if (preset.Output.PrintGithub)
+            csv.WriteField("Github");
+
+        if (preset.Output.PrintUpwork)
+            csv.WriteField("Upwork");
+
+        if (preset.Output.PrintHH)
+            csv.WriteField("HH");
+
+        if (preset.Output.PrintGlassdoor)
+            csv.WriteField("Glassdoor");
+
+        if (preset.Output.PrintIndeed)
+            csv.WriteField("Indeed");
+
+        if (preset.Output.PrintOtherExternalLinks)
+            csv.WriteField("Other External Links");
+
         csv.NextRecord();
     }
-    
-    private static void WriteRows(
+
+    private void WriteRows(
         CsvWriter csv,
-        IEnumerable<CompanyResult> companies, 
-        CrawlPresetConfig preset)
+        IEnumerable<CompanyResult> companies)
     {
         foreach (var company in companies)
         {
             csv.WriteField(company.CompanyName);
             csv.WriteField(company.Website);
 
-            csv.WriteField(company.BestEmail);
+            if (preset.Output.PrintBestEmail)
+                csv.WriteField(company.BestEmail);
 
             foreach (var analyzer in preset.KeywordAnalyzersData)
             {
-                if (company.Results.TryGetValue(analyzer.Type, out var results) &&
-                    results.Count > 0)
-                {
-                    var best = results[0];
+                var printType = preset.Output.Analyzers[analyzer.Type];
 
-                    csv.WriteField(best.Page);
-                    csv.WriteField(string.Join(", ", best.Keywords));
-                }
-                else
+                company.Results.TryGetValue(
+                    analyzer.Type,
+                    out var results);
+
+                results ??= [];
+
+                switch (printType)
                 {
-                    csv.WriteField("");
-                    csv.WriteField("");
+                    case PrintType.None:
+                        break;
+
+                    case PrintType.Keywords:
+                    {
+                        csv.WriteField(
+                            GetTopKeywords(results));
+
+                        break;
+                    }
+
+                    case PrintType.Links:
+                    {
+                        csv.WriteField(
+                            string.Join(
+                                "; ",
+                                results.Select(x => x.Page)));
+
+                        break;
+                    }
+
+                    case PrintType.BestLink:
+                    {
+                        csv.WriteField(
+                            results.FirstOrDefault()?.Page ?? "");
+
+                        break;
+                    }
+
+                    case PrintType.KeywordsAndLinks:
+                    {
+                        var best = results.FirstOrDefault();
+
+                        csv.WriteField(best?.Page ?? "");
+
+                        csv.WriteField(
+                            best == null
+                                ? ""
+                                : string.Join(", ", best.Keywords));
+
+                        break;
+                    }
+
+                    case PrintType.KeywordsAndLinksAndOther:
+                    {
+                        var best = results.FirstOrDefault();
+
+                        csv.WriteField(best?.Page ?? "");
+
+                        csv.WriteField(
+                            best == null
+                                ? ""
+                                : string.Join(", ", best.Keywords));
+
+                        var others = results.Skip(1).ToList();
+
+                        csv.WriteField(
+                            string.Join(
+                                "; ",
+                                others.Select(x => x.Page)));
+
+                        csv.WriteField(
+                            string.Join(
+                                "; ",
+                                others.Select(
+                                    x => string.Join(", ", x.Keywords))));
+
+                        break;
+                    }
                 }
             }
             
-            csv.WriteField(company.AllEmails);
+            if (preset.Output.PrintAllEmails)
+                csv.WriteField(company.AllEmails);
 
-            foreach (var analyzer in preset.KeywordAnalyzersData)
-            {
-                if (company.Results.TryGetValue(analyzer.Type, out var results) &&
-                    results.Count > 1)
-                {
-                    var others = results.Skip(1);
+            if (preset.Output.PrintLinkedIn)
+                csv.WriteField(company.LinkedIn);
 
-                    csv.WriteField(string.Join("; ", others.Select(x => x.Page)));
-                    csv.WriteField(string.Join("; ", others.Select(x => string.Join(", ", x.Keywords))));
-                }
-                else
-                {
-                    csv.WriteField("");
-                    csv.WriteField("");
-                }
-            }
-            
-            csv.WriteField(company.LinkedIn);
-            csv.WriteField(company.Github);
-            csv.WriteField(company.Upwork);
-            csv.WriteField(company.HH);
-            csv.WriteField(company.Glassdoor);
-            csv.WriteField(company.Indeed);
-            csv.WriteField(company.OtherExternalLinks);
+            if (preset.Output.PrintGithub)
+                csv.WriteField(company.Github);
+
+            if (preset.Output.PrintUpwork)
+                csv.WriteField(company.Upwork);
+
+            if (preset.Output.PrintHH)
+                csv.WriteField(company.HH);
+
+            if (preset.Output.PrintGlassdoor)
+                csv.WriteField(company.Glassdoor);
+
+            if (preset.Output.PrintIndeed)
+                csv.WriteField(company.Indeed);
+
+            if (preset.Output.PrintOtherExternalLinks)
+                csv.WriteField(company.OtherExternalLinks);
 
             csv.NextRecord();
         }
+    }
+
+    private static string GetTopKeywords(
+        List<AnalyzerResult> results)
+    {
+        return string.Join(
+            ", ",
+            results
+                .SelectMany(x => x.Keywords)
+                .GroupBy(x => x, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(x => x.Count())
+                .ThenBy(x => x.Key)
+                .Select(x => x.Key));
     }
 }
