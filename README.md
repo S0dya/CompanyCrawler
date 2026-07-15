@@ -131,10 +131,6 @@ dotnet restore
 dotnet build
 ```
 
-### Windows may show a SmartScreen warning because the application is unsigned.
-The source code is public and can be reviewed on GitHub.
-
-
 ---
 
 ## Change Tags in the data folders
