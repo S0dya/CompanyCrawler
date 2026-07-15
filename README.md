@@ -115,7 +115,7 @@ Different workflows can be created without touching the code.
 
 # Installation / Download
 
-## Download CompanyCralwer from releases
+[## Download CompanyCralwer from releases](https://github.com/S0dya/CompanyCrawler/releases/tag/%2C)
 
 or
 
