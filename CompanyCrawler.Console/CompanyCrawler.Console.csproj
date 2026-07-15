@@ -6,6 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>CompanyCrawler</RootNamespace>
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <PublishTrimmed>false</PublishTrimmed>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,11 +19,17 @@
       <ProjectReference Include="..\CompanyCrawler.Core\CompanyCrawler.Core.csproj" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    </PropertyGroup>
+
     <ItemGroup>
         <None Update="Data\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Always</CopyToPublishDirectory>
         </None>
     </ItemGroup>
+    
+    
 
 </Project>
