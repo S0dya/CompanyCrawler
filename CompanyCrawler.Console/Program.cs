@@ -44,7 +44,7 @@ var inputFolder = Path.Combine(root, SystemConfig.Paths.InputFolder);
 var outputFolder = Path.Combine(root, SystemConfig.Paths.OutputFolder);
 
 var tagsPath = Path.Combine(tagsFolder, SystemConfig.Paths.TagsFileName);
-var csvFiles = Directory.GetFiles(inputFolder, "*.csv");
+var inputFiles = Directory.GetFiles(inputFolder, "*").Where(f => f.EndsWith(".csv") || f.EndsWith(".txt")).ToArray();
 var outputPath = Path.Combine(outputFolder, SystemConfig.Paths.OutputFileName);
 
 Directory.CreateDirectory(SystemConfig.Paths.DownloadedHtmlFolder);
@@ -61,6 +61,7 @@ tagsAnalyzer.Keywords = TagsLoader.Load(tagsPath);
 var serviceProvider = await DependencyInjection.ConfigureAsync(preset);
     
 var csvReader = serviceProvider.GetRequiredService<ICompanyCsvReader>();
+var txtReader = serviceProvider.GetRequiredService<ICompanyTxtReader>();
 var websiteDownloader = serviceProvider.GetRequiredService<IWebDownloader>();
 var linkNormalizer = serviceProvider.GetRequiredService<ILinkNormalizer>();
 var sitemapDownloader = serviceProvider.GetRequiredService<ISitemapDownloader>();
@@ -71,17 +72,32 @@ var urlHelper = serviceProvider.GetRequiredService<IUrlHelper>();
 
 var analyzers = serviceProvider.GetServices<IPageAnalyzer>().ToList();
 
-Console.WriteLine("Available CSV files:");
-for (var i = 0; i < csvFiles.Length; i++)
+Console.WriteLine("Available input files:");
+for (var i = 0; i < inputFiles.Length; i++)
 {
-    Console.WriteLine($"{i + 1}. {Path.GetFileName(csvFiles[i])}");
+    Console.WriteLine($"{i + 1}. {Path.GetFileName(inputFiles[i])}");
 }
 Console.Write("> ");
-var csvIndex = int.Parse(Console.ReadLine()!);
+var fileIndex = int.Parse(Console.ReadLine()!);
 
-var companies = csvReader.ReadCompanies(csvFiles[csvIndex - 1]);
+var selectedFile = inputFiles[fileIndex - 1];
+var fileExtension = Path.GetExtension(selectedFile).ToLower();
 
-logger.LogInformation("Loaded {CompanyCount} companies from CSV", companies.Count);
+List<Company> companies;
+if (fileExtension == ".csv")
+{
+    companies = csvReader.ReadCompanies(selectedFile);
+}
+else if (fileExtension == ".txt")
+{
+    companies = txtReader.ReadCompanies(selectedFile);
+}
+else
+{
+    throw new NotSupportedException($"File extension '{fileExtension}' is not supported.");
+}
+
+logger.LogInformation("Loaded {CompanyCount} companies from {FileExtension}", companies.Count, fileExtension);
 
 var parallelOptions = new ParallelOptions{ MaxDegreeOfParallelism = 8 };
 var results = new ConcurrentBag<CompanyResult>();
@@ -104,7 +120,7 @@ await Parallel.ForEachAsync(companies, parallelOptions, async (company, ct) =>
 
 logger.LogInformation("All companies processed. Writing results to CSV");
 
-var inputFileName = Path.GetFileNameWithoutExtension(csvFiles[csvIndex - 1]);
+var inputFileName = Path.GetFileNameWithoutExtension(selectedFile);
 var outputFile = Path.Combine(outputFolder, inputFileName + "_" + SystemConfig.Paths.OutputFileName);
 
 outputWriter.Write(outputFile, results.ToList());

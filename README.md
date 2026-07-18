@@ -149,16 +149,19 @@ Data
 
 ---
 
-## Prepare the input CSV
+## Prepare the input CSV / TXT file
 
 Create:
 
 ```
 Data/Input/companies.csv
+/
+Data/Input/companies.txt
 ```
 
 Example:
 
+### csv:
 ```csv
 Website
 https://www.supercell.com
@@ -166,6 +169,12 @@ https://www.playrix.com
 https://www.riotgames.com
 ```
 
+### txt:
+```txt
+https://www.supercell.com
+https://www.playrix.com
+https://www.riotgames.com
+```
 ---
 
 ## (OPTIONAL) Configure a preset

@@ -41,6 +41,7 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<ICompanyCsvReader, CompanyCsvReader>();
+        services.AddSingleton<ICompanyTxtReader, CompanyTxtReader>();
         services.AddSingleton<ILinkNormalizer, LinkNormalizer>();
         services.AddSingleton<ISitemapDownloader, SitemapDownloader>();
         services.AddSingleton<ILinkClassifier, LinkClassifier>();
